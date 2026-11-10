@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@import "../styles/app.css";
+
+@theme inline {
+  --font-sans: var(--font-jakarta);
+  --font-serif: var(--font-fraunces);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: #eee9df;
+}
+
+body {
+  font-family: var(--font-jakarta), sans-serif;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #175d76;
+  outline-offset: 3px;
+}
