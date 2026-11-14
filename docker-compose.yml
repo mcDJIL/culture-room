@@ -45,8 +45,8 @@ services:
       PORT: 4000
       DATABASE_URL: postgres://${POSTGRES_USER:-ruang_budaya}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-ruang_budaya}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
-    expose:
-      - "4000"
+    ports:
+      - "127.0.0.1:4000:4000"
     depends_on:
       db:
         condition: service_healthy
@@ -61,28 +61,10 @@ services:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost}
     image: ruang-budaya-frontend:latest
     restart: unless-stopped
-    expose:
-      - "3000"
-    depends_on:
-      - backend
-
-  caddy:
-    image: caddy:2-alpine
-    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
-    environment:
-      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+      - "127.0.0.1:3000:3000"
     depends_on:
-      - frontend
       - backend
 
 volumes:
   db_data:
-  caddy_data:
-  caddy_config:
