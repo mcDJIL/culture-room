@@ -2,12 +2,12 @@
 #   sudo ln -s /etc/nginx/sites-available/budaya-go /etc/nginx/sites-enabled/
 #   sudo nginx -t && sudo systemctl reload nginx
 # Setelah itu terbitkan sertifikat:
-#   sudo certbot --nginx -d budaya.app.launchify.sites
+#   sudo certbot --nginx -d budaya.app.launchify.site
 
 server {
     listen 80;
     listen [::]:80;
-    server_name budaya.app.launchify.sites;
+    server_name budaya.app.launchify.site;
 
     client_max_body_size 2m;
 
