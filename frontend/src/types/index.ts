@@ -19,16 +19,4 @@ export type IconName =
   | "search"
   | "users";
 
-export type Post = {
-  id: number;
-  author: string;
-  discipline: string;
-  location: string;
-  type: string;
-  body: string;
-  image?: string;
-  imageAlt?: string;
-  imageCredit?: string;
-  tags: string[];
-  local?: boolean;
-};
+export type { Post } from "@/lib/api";
