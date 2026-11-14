@@ -66,12 +66,27 @@ export function CulturalMark({
 
 export function CulturalBackdrop() {
   return (
-    <div aria-hidden="true" className="cultural-backdrop">
-      <CulturalMark className="backdrop-mark backdrop-wayang" type="wayang" />
-      <CulturalMark className="backdrop-mark backdrop-keris" type="keris" />
-      <CulturalMark className="backdrop-mark backdrop-lancang" type="lancang" />
-      <CulturalMark className="backdrop-mark backdrop-mandau" type="mandau" />
-      <CulturalMark className="backdrop-mark backdrop-sampan" type="sampan" />
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+      <CulturalMark
+        className="absolute top-[22%] -left-[42px] w-[190px] -rotate-[5deg] text-brick opacity-[.055] max-[820px]:-left-20 max-[600px]:opacity-[.035]"
+        type="wayang"
+      />
+      <CulturalMark
+        className="absolute top-[12%] right-[2%] w-[120px] rotate-[13deg] text-brick opacity-[.055] max-[820px]:-right-[35px] max-[600px]:opacity-[.035]"
+        type="keris"
+      />
+      <CulturalMark
+        className="absolute right-[5%] bottom-[4%] w-[250px] text-moss opacity-[.055] max-[600px]:-right-[70px] max-[600px]:w-[210px] max-[600px]:opacity-[.035]"
+        type="lancang"
+      />
+      <CulturalMark
+        className="absolute top-[58%] left-[3%] w-[140px] -rotate-[13deg] text-moss opacity-[.055] max-[820px]:hidden max-[600px]:opacity-[.035]"
+        type="mandau"
+      />
+      <CulturalMark
+        className="absolute right-[30%] bottom-[1%] w-[180px] text-brick opacity-[.055] max-[600px]:opacity-[.035]"
+        type="sampan"
+      />
     </div>
   );
 }
@@ -79,10 +94,19 @@ export function CulturalBackdrop() {
 export function MotifRibbon() {
   const motifs: Motif[] = ["wayang", "batik", "keris", "lancang", "mandau", "sampan"];
   return (
-    <div aria-hidden="true" className="motif-ribbon">
-      <span />
-      {motifs.map((motif) => <CulturalMark key={motif} type={motif} />)}
-      <span />
+    <div
+      aria-hidden="true"
+      className="relative z-[2] flex h-[52px] items-center justify-center gap-[clamp(12px,2.5vw,34px)] border-b border-line bg-[#e8dece] bg-[linear-gradient(45deg,rgba(156,61,42,.04)_25%,transparent_25%,transparent_75%,rgba(156,61,42,.04)_75%)] bg-[length:18px_18px] px-5 py-1.5 text-brick-dark max-[600px]:h-[42px] max-[600px]:gap-[9px] max-[600px]:p-[4px_10px]"
+    >
+      <span className="h-px w-[min(180px,12vw)] bg-current opacity-35 max-[600px]:w-[18px]" />
+      {motifs.map((motif, index) => (
+        <CulturalMark
+          className={`size-[34px] opacity-[.82] max-[600px]:size-[27px] ${index >= 4 ? "max-[600px]:hidden" : ""}`}
+          key={motif}
+          type={motif}
+        />
+      ))}
+      <span className="h-px w-[min(180px,12vw)] bg-current opacity-35 max-[600px]:w-[18px]" />
     </div>
   );
 }

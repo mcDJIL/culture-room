@@ -21,7 +21,14 @@ export function Icon({ name, size = 20 }: { name: IconName; size?: number }) {
   };
 
   return (
-    <svg aria-hidden="true" className="icon" fill="none" height={size} viewBox="0 0 24 24" width={size}>
+    <svg
+      aria-hidden="true"
+      className="flex-none stroke-current [stroke-linecap:round] [stroke-linejoin:round] [stroke-width:1.8]"
+      fill="none"
+      height={size}
+      viewBox="0 0 24 24"
+      width={size}
+    >
       {paths[name]}
     </svg>
   );

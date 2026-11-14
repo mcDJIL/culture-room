@@ -1,171 +1,175 @@
-import { useState } from "react";
-import { workshops } from "@/data/demoData";
+import { DataState } from "@/components/DataState";
 import { Icon } from "@/components/Icon";
 import { PostCard } from "@/components/PostCard";
-import type { DialogMode, Post, View } from "@/types";
-
-type DemoState = "ready" | "loading" | "empty" | "error";
+import { api, type Opportunity, type Post, type Workshop } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { useResource } from "@/lib/useResource";
+import { avatar, eyebrow, primaryButton, secondaryButton, surfaceCard, textAction } from "@/lib/ui";
+import type { DialogMode, View } from "@/types";
 
 export function HomePage({
-  liked,
+  feedVersion,
   navigate,
-  onLike,
   onOpenDialog,
-  onSave,
-  posts,
-  saved,
 }: {
-  liked: number[];
+  feedVersion: number;
   navigate: (view: View) => void;
-  onLike: (id: number) => void;
   onOpenDialog: (mode: Exclude<DialogMode, null>) => void;
-  onSave: (id: number) => void;
-  posts: Post[];
-  saved: number[];
 }) {
-  const [demoState, setDemoState] = useState<DemoState>("ready");
+  const { requireLogin, status, user } = useAuth();
+  const posts = useResource((signal) => api<Post[]>("/posts", { signal }), [status, feedVersion]);
+  const opportunities = useResource((signal) => api<Opportunity[]>("/opportunities", { signal }), []);
+  const workshops = useResource((signal) => api<Workshop[]>("/workshops", { signal }), []);
+  const displayName = user?.name || "Tamu";
+  const signedIn = status === "signed-in";
+  const openProfile = () => {
+    if (requireLogin()) navigate("karya");
+  };
+
+  async function togglePost(id: number, field: "liked" | "saved", path: "like" | "save") {
+    if (!requireLogin() || !posts.data) return;
+    const current = posts.data.find((item) => item.id === id);
+    if (!current) return;
+    const active = !current[field];
+    posts.setData(posts.data.map((item) => (item.id === id ? { ...item, [field]: active } : item)));
+    try {
+      await api(`/posts/${id}/${path}`, { method: "PUT", body: { active } });
+    } catch {
+      posts.setData(posts.data);
+    }
+  }
 
   return (
-    <div className="app-layout">
-      <aside className="left-rail">
-        <section className="profile-card">
-          <div className="profile-cover" />
-          <span className="avatar profile-avatar">S</span>
-          <span className="demo-chip">Profil Anda</span>
-          <h2>Profil Seniman Anda</h2>
-          <p>Tambahkan bidang seni, domisili, afiliasi sanggar, dan riwayat karya.</p>
-          <button className="text-action" onClick={() => navigate("karya")} type="button">
-            Lengkapi portofolio
-          </button>
+    <div className="grid grid-cols-[250px_minmax(0,650px)_300px] items-start justify-center gap-[22px] px-6 pt-7 pb-[100px] max-[1160px]:min-[821px]:grid-cols-[220px_minmax(0,650px)] max-[820px]:grid-cols-[minmax(0,650px)] max-[820px]:min-[601px]:px-[18px] max-[820px]:min-[601px]:pt-5 max-[600px]:px-2.5 max-[600px]:pt-3.5 max-[600px]:pb-[90px]">
+      <aside className="sticky top-[116px] grid gap-[18px] max-[820px]:hidden">
+        <section className={`${surfaceCard} relative overflow-hidden px-5 pb-[22px] text-center`}>
+          <div className="-mx-5 h-[72px] bg-brick bg-[image:linear-gradient(45deg,transparent_44%,rgba(248,245,238,.25)_44%_49%,transparent_49%_51%,rgba(248,245,238,.25)_51%_56%,transparent_56%)] bg-[length:30px_30px]" />
+          <span className="relative mx-auto -mt-[34px] mb-3 grid size-[68px] shrink-0 place-items-center rounded-full border-4 border-paper bg-moss font-serif text-[25px] font-bold text-white">{displayName.charAt(0)}</span>
+          <span className="inline-flex rounded-sm bg-ink px-2 py-[5px] text-[9px] font-bold text-white">
+            {status === "loading" ? "Memuat..." : signedIn ? "Akun Anda" : "Tamu"}
+          </span>
+          <h2 className="mt-3 mb-2 font-serif text-[22px]">
+            {status === "loading" ? "Memuat profil" : signedIn ? displayName : "Belum masuk"}
+          </h2>
+          {status === "loading" ? (
+            <div aria-hidden="true" className="grid gap-2">
+              <span className="mx-auto h-3 w-36 animate-pulse rounded-sm bg-line" />
+              <span className="mx-auto h-3 w-28 animate-pulse rounded-sm bg-line" />
+              <span className="mt-2 h-11 w-full animate-pulse rounded-sm bg-line/60" />
+            </div>
+          ) : signedIn ? (
+            <>
+              <p className="text-[12px] leading-[1.6] text-muted">
+                {user?.headline || "Tambahkan bidang seni, domisili, afiliasi sanggar, dan riwayat karya."}
+              </p>
+              <button className={textAction} onClick={() => navigate("karya")} type="button">
+                Lengkapi portofolio
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="text-[12px] leading-[1.6] text-muted">
+                Masuk dulu untuk membuka halaman profil, portofolio, dan karya tersimpan Anda.
+              </p>
+              <button className={textAction} onClick={openProfile} type="button">
+                Masuk untuk membuka profil
+              </button>
+            </>
+          )}
         </section>
-        <section className="rail-card compact-links">
-          <button onClick={() => navigate("karya")} type="button"><Icon name="archive" /> Karya tersimpan</button>
-          <button onClick={() => navigate("jejaring")} type="button"><Icon name="network" /> Kluster yang diikuti</button>
-          <button onClick={() => navigate("workshop")} type="button"><Icon name="calendar" /> Agenda workshop</button>
+        <section className={`${surfaceCard} px-4 py-2`}>
+          <button className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 border-b border-line bg-transparent py-[5px] text-left text-[12px] last:border-b-0" onClick={openProfile} type="button"><Icon name="archive" /> Karya tersimpan</button>
+          <button className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 border-b border-line bg-transparent py-[5px] text-left text-[12px] last:border-b-0" onClick={() => navigate("jejaring")} type="button"><Icon name="network" /> Kluster yang diikuti</button>
+          <button className="flex min-h-12 w-full cursor-pointer items-center gap-2.5 border-b border-line bg-transparent py-[5px] text-left text-[12px] last:border-b-0" onClick={() => navigate("workshop")} type="button"><Icon name="calendar" /> Agenda workshop</button>
         </section>
       </aside>
 
-      <section className="feed" aria-label="Aktivitas jejaring budaya">
-        <div className="composer">
-          <div className="composer-line">
-            <span className="avatar">S</span>
-            <button onClick={() => onOpenDialog("post")} type="button">
+      <section className="grid min-w-0 gap-4" aria-label="Aktivitas jejaring budaya">
+        <div className={`${surfaceCard} p-[18px] max-[600px]:p-[13px]`}>
+          <div className="flex items-center gap-3">
+            <span className={avatar}>{displayName.charAt(0)}</span>
+            <button className="w-full min-h-[46px] cursor-pointer rounded-md border border-[#897f72] bg-transparent px-4 py-2.5 text-left text-muted hover:bg-[#eee7db]" onClick={() => onOpenDialog("post")} type="button">
               Bagikan karya, proses, atau gagasan pengembangan seni
             </button>
           </div>
-          <div className="composer-actions">
-            <button onClick={() => onOpenDialog("post")} type="button"><Icon name="image" /> Unggah karya</button>
-            <button onClick={() => onOpenDialog("kolaborasi")} type="button"><Icon name="users" /> Cari kolaborator</button>
-            <button onClick={() => onOpenDialog("jasa")} type="button"><Icon name="briefcase" /> Tawarkan jasa</button>
+          <div className="mt-[13px] grid grid-cols-[repeat(3,1fr)] gap-1.5">
+            <button className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm bg-transparent p-2 text-[11px] font-bold hover:bg-[#eee7db] hover:text-brick max-[600px]:flex-col max-[600px]:gap-[5px] max-[600px]:text-[9px]" onClick={() => onOpenDialog("post")} type="button"><Icon name="image" /> Unggah karya</button>
+            <button className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm bg-transparent p-2 text-[11px] font-bold hover:bg-[#eee7db] hover:text-brick max-[600px]:flex-col max-[600px]:gap-[5px] max-[600px]:text-[9px]" onClick={() => onOpenDialog("kolaborasi")} type="button"><Icon name="users" /> Cari kolaborator</button>
+            <button className="flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-sm bg-transparent p-2 text-[11px] font-bold hover:bg-[#eee7db] hover:text-brick max-[600px]:flex-col max-[600px]:gap-[5px] max-[600px]:text-[9px]" onClick={() => onOpenDialog("jasa")} type="button"><Icon name="briefcase" /> Tawarkan jasa</button>
           </div>
         </div>
 
-        <div className="feed-context">
+        <div className="flex items-end justify-between gap-[18px] px-0.5 pt-3 pb-0.5 max-[600px]:flex-col max-[600px]:items-start">
           <div>
-            <span className="eyebrow">Beranda jejaring</span>
-            <h1>Karya, peluang, dan percakapan komunitas</h1>
+            <span className={eyebrow}>Beranda jejaring</span>
+            <h1 className="mt-1 max-w-[500px] font-serif text-[28px] leading-[1.08] max-[600px]:text-[25px]">Karya, peluang, dan percakapan komunitas</h1>
           </div>
-          <label className="state-tester">
-            Tampilan beranda
-            <select onChange={(event) => setDemoState(event.target.value as DemoState)} value={demoState}>
-              <option value="ready">Berisi</option>
-              <option value="loading">Memuat</option>
-              <option value="empty">Kosong</option>
-              <option value="error">Gagal</option>
-            </select>
-          </label>
         </div>
 
-        {demoState === "loading" && (
-          <DataState icon="archive" text="Karya, peluang jasa, dan percakapan komunitas sedang disiapkan." title="Memuat aktivitas jejaring" />
+        {posts.state === "loading" && (
+          <DataState icon="archive" text="Karya, peluang jasa, dan percakapan komunitas sedang diambil dari server." title="Memuat aktivitas jejaring" />
         )}
-        {demoState === "empty" && (
+        {posts.state === "error" && (
           <DataState
-            action={<button className="primary-button" onClick={() => onOpenDialog("post")} type="button">Bagikan karya pertama</button>}
+            action={<button className={secondaryButton()} onClick={posts.reload} type="button">Muat ulang aktivitas</button>}
+            alert
+            icon="close"
+            text={posts.error}
+            title="Aktivitas tidak dapat dimuat"
+          />
+        )}
+        {posts.state === "ready" && posts.data?.length === 0 && (
+          <DataState
+            action={<button className={primaryButton} onClick={() => onOpenDialog("post")} type="button">Bagikan karya pertama</button>}
             icon="image"
             text="Ikuti kluster seni atau bagikan karya pertama agar percakapan muncul di sini."
             title="Belum ada aktivitas di beranda Anda"
           />
         )}
-        {demoState === "error" && (
-          <DataState
-            action={<button className="secondary-button" onClick={() => setDemoState("ready")} type="button">Muat ulang aktivitas</button>}
-            alert
-            icon="close"
-            text="Aktivitas belum dapat ditampilkan. Silakan muat ulang beranda."
-            title="Aktivitas tidak dapat dimuat"
-          />
-        )}
-        {demoState === "ready" && posts.map((post) => (
+        {posts.state === "ready" && posts.data?.map((post) => (
           <PostCard
             key={post.id}
-            liked={liked.includes(post.id)}
-            onCollaborate={() => onOpenDialog("kolaborasi")}
-            onLike={() => onLike(post.id)}
-            onSave={() => onSave(post.id)}
+            onLike={() => void togglePost(post.id, "liked", "like")}
+            onSave={() => void togglePost(post.id, "saved", "save")}
             post={post}
-            saved={saved.includes(post.id)}
           />
         ))}
       </section>
 
-      <aside className="right-rail">
-        <section className="rail-card">
-          <div className="rail-heading">
-            <span className="eyebrow">Peluang jasa</span>
-            <h2>Kebutuhan dari pencari seniman</h2>
+      <aside className="sticky top-[116px] grid gap-[18px] max-[1160px]:hidden">
+        <section className={`${surfaceCard} p-5`}>
+          <div>
+            <span className={eyebrow}>Peluang jasa</span>
+            <h2 className="mb-[18px] font-serif text-[21px] leading-[1.15]">Kebutuhan dari pencari seniman</h2>
           </div>
-          <Opportunity title="Pengisi acara budaya" detail="Dibutuhkan · Pertunjukan" />
-          <Opportunity title="Fasilitator kelas kriya" detail="Dibutuhkan · Workshop" />
-          <Opportunity title="Penata musik pertunjukan" detail="Dibutuhkan · Kolaborasi" />
-          <button className="text-action" onClick={() => navigate("jasa")} type="button">Buka etalase jasa</button>
+          {opportunities.data?.map((item) => (
+            <Opportunity detail={item.detail} key={item.id} title={item.title} />
+          ))}
+          <button className={textAction} onClick={() => navigate("jasa")} type="button">Buka etalase jasa</button>
         </section>
-        <section className="rail-card">
-          <div className="rail-heading">
-            <span className="eyebrow">Workshop terdekat</span>
-            <h2>Belajar berdasarkan kluster</h2>
+        <section className={`${surfaceCard} p-5`}>
+          <div>
+            <span className={eyebrow}>Workshop terdekat</span>
+            <h2 className="mb-[18px] font-serif text-[21px] leading-[1.15]">Belajar berdasarkan kluster</h2>
           </div>
-          {workshops.slice(0, 2).map((item) => (
-            <button className="mini-agenda" key={item.title} onClick={() => navigate("workshop")} type="button">
+          {workshops.data?.slice(0, 2).map((item) => (
+            <button className="flex min-h-16 w-full cursor-pointer items-start gap-2.5 rounded-sm border-t border-line bg-transparent px-2 py-3 text-left hover:bg-[#eee7db]" key={item.id} onClick={() => navigate("workshop")} type="button">
               <Icon name="calendar" />
-              <span><strong>{item.title}</strong><small>{item.cluster}</small></span>
+              <span className="grid gap-[5px]"><strong className="text-[10px] leading-[1.4]">{item.title}</strong><small className="text-[9px] text-muted">{item.cluster}</small></span>
             </button>
           ))}
-          <button className="text-action" onClick={() => navigate("workshop")} type="button">Lihat semua workshop</button>
+          <button className={textAction} onClick={() => navigate("workshop")} type="button">Lihat semua workshop</button>
         </section>
       </aside>
-    </div>
-  );
-}
-
-function DataState({
-  action,
-  alert = false,
-  icon,
-  text,
-  title,
-}: {
-  action?: React.ReactNode;
-  alert?: boolean;
-  icon: "archive" | "image" | "close";
-  text: string;
-  title: string;
-}) {
-  return (
-    <div className="data-state-panel" role={alert ? "alert" : "status"}>
-      <Icon name={icon} size={30} />
-      <h2>{title}</h2>
-      <p>{text}</p>
-      {action}
     </div>
   );
 }
 
 function Opportunity({ detail, title }: { detail: string; title: string }) {
   return (
-    <div className="opportunity">
-      <span className="opportunity-mark" aria-hidden="true" />
-      <div><strong>{title}</strong><span>{detail}</span></div>
+    <div className="flex items-start gap-[11px] border-t border-line py-[13px]">
+      <span className="mt-1 size-[9px] shrink-0 rounded-[3px] bg-gold" aria-hidden="true" />
+      <div className="grid gap-1"><strong className="text-[11px]">{title}</strong><span className="text-[9px] text-muted">{detail}</span></div>
     </div>
   );
 }

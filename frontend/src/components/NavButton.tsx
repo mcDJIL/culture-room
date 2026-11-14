@@ -1,4 +1,5 @@
 import { Icon } from "@/components/Icon";
+import { navButton } from "@/lib/ui";
 import type { IconName, View } from "@/types";
 
 export function NavButton({
@@ -15,7 +16,12 @@ export function NavButton({
   view: View;
 }) {
   return (
-    <button aria-current={current === view ? "page" : undefined} onClick={onClick} type="button">
+    <button
+      aria-current={current === view ? "page" : undefined}
+      className={navButton}
+      onClick={onClick}
+      type="button"
+    >
       <Icon name={icon} />
       <span>{label}</span>
     </button>
