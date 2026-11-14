@@ -1,36 +1,43 @@
 @import "tailwindcss";
-@import "../styles/app.css";
 
 @theme inline {
-  --font-sans: var(--font-jakarta);
-  --font-serif: var(--font-fraunces);
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --color-paper: #f8f5ee;
+  --color-canvas: #eee9df;
+  --color-ink: #28241f;
+  --color-muted: #69635b;
+  --color-line: #ccc3b5;
+  --color-brick: #9c3d2a;
+  --color-brick-dark: #782c1e;
+  --color-moss: #3f5839;
+  --color-gold: #b6883e;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-html {
-  background: #eee9df;
-}
+  body {
+    text-rendering: optimizeLegibility;
+  }
 
-body {
-  font-family: var(--font-jakarta), sans-serif;
-}
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
 
-button,
-a,
-input,
-select,
-textarea {
-  -webkit-tap-highlight-color: transparent;
-}
+  :focus-visible {
+    outline: 3px solid #175d76;
+    outline-offset: 3px;
+  }
 
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: 3px solid #175d76;
-  outline-offset: 3px;
+  img {
+    max-width: 100%;
+  }
 }
